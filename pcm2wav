@@ -1,0 +1,189 @@
+#!/bin/bash
+#
+# Copyright (C) 2014 Wenva <lvyexuwenfa100@126.com>
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished
+# to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+set -e
+
+spushd() {
+     pushd "$1" 2>&1> /dev/null
+}
+
+spopd() {
+     popd 2>&1> /dev/null
+}
+
+info() {
+     local green="\033[1;32m"
+     local normal="\033[0m"
+     echo -e "[${green}INFO${normal}] $1"
+}
+
+cmdcheck() {
+    command -v $1>/dev/null 2>&1 || { error >&2 "Please install command $1 first."; exit 1; }   
+}
+
+error() {
+     local red="\033[1;31m"
+     local normal="\033[0m"
+     echo -e "[${red}ERROR${normal}] $1"
+}
+
+curdir() {
+    if [ ${0:0:1} = '/' ] || [ ${0:0:1} = '~' ]; then
+        echo "$(dirname $0)"
+    elif [ -L $0 ];then
+        name=`readlink $0`
+        echo $(dirname $name)
+    else
+        echo "`pwd`/$(dirname $0)"
+    fi
+}
+
+
+#########################################
+###           GROBLE DEFINE           ###
+#########################################
+
+VERSION=1.0.0
+AUTHOR=smallmuou
+
+#########################################
+###             ARG PARSER            ###
+#########################################
+
+wav2pcm() {
+    dd if=$1 of=$2 bs=1 skip=44 > /dev/null 2>&1
+}
+
+wav2pcm_enable=0
+
+usage() {
+cat << EOF
+`basename $0` version $VERSION by $AUTHOR
+
+USAGE: `basename $0` [OPTIONS] channel samplerate bitdepth pcmfile wavfile
+       `basename $0` [OPTIONS] -r wavfile pcmfile
+
+DESCRIPTION:
+    This script is a tool that convert pcm to wav, or convert wav to pcm
+
+    channel         the number of channel. 1 is mono, 2 is stereo.
+    samplerate      the rate of sample. like 8000, 16000 and so.
+    bitdepth        the number of bit per sample. like 16, 32.
+    pcmfile         the pcm file path.
+    wavfile         the wav file path.
+
+OPTIONS:
+    -h              show this help message and exit.
+    -r              convert wav to pcm.
+
+SAMPLES:
+    pcm2wav 1 8000 16 sample2.pcm out.wav
+    pcm2wav -r sample2.wav out.pcm
+
+EOF
+exit 1
+}
+
+while getopts 'hr' arg; do
+    case $arg in
+        h)
+            usage
+            ;;
+        r)
+            wav2pcm_enable=1
+            ;;
+        ?)
+            usage
+            ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ $wav2pcm_enable -eq 1 ];then
+    [ $# -ne 2 ] && usage
+    infile=$1
+    outfile=$2
+else 
+    [ $# -ne 5 ] && usage
+    channel=$1
+    samplerate=$2
+    bitdepth=$3
+    infile=$4
+    outfile=$5
+fi
+
+[ ! -f $infile ] && { error "input file $infile does not exist."; exit -1; }
+
+if [ $wav2pcm_enable -eq 1 ];then
+    wav2pcm $infile $outfile
+    info "successfully convert $infile to $outfile."
+    exit 0
+fi
+
+cmdcheck xxd
+
+#########################################
+###            MAIN ENTRY             ###
+#########################################
+
+filesize() {  
+  /bin/ls -l $1|awk '{print $5  }'
+}
+
+# data
+little_endian() {
+    local i
+    len=${#1}
+    for (( i=$len; i>=2; i=i-2 ))
+    do
+        echo -n ${1:i-2:2}
+    done
+    echo 
+}
+
+# length data
+hex() {
+    printf "%0$1x" $2
+}
+
+pcmsize=`filesize $infile`
+
+wav_header() {
+echo -n '5249 4646 '\
+$(little_endian $(hex 8 `expr $pcmsize + 36`))\
+'5741 5645 666d 7420'\
+'1000 0000'\
+'0100'\
+$(little_endian $(hex 4 $channel))\
+$(little_endian $(hex 8 $samplerate))\
+$(little_endian $(hex 8 `expr $channel \* $samplerate \* $bitdepth \/ 8 `))\
+$(little_endian $(hex 4 `expr $channel \* $bitdepth \/ 8 `))\
+$(little_endian $(hex 4 $bitdepth))\
+'6461 7461'\
+$(little_endian $(hex 8 $pcmsize))
+}
+
+wav_header|xxd -r -p > $outfile
+cat $infile >> $outfile
+
+info "successfully convert $infile to $outfile."
