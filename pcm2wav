@@ -79,7 +79,7 @@ usage() {
 cat << EOF
 `basename $0` version $VERSION by $AUTHOR
 
-USAGE: `basename $0` [OPTIONS] channel samplerate bitdepth pcmfile wavfile
+USAGE: `basename $0` [OPTIONS] channel samplerate bitspersample pcmfile wavfile
        `basename $0` [OPTIONS] -r wavfile pcmfile
 
 DESCRIPTION:
@@ -87,7 +87,7 @@ DESCRIPTION:
 
     channel         the number of channel. 1 is mono, 2 is stereo.
     samplerate      the rate of sample. like 8000, 16000 and so.
-    bitdepth        the number of bit per sample. like 16, 32.
+    bitspersample   the number of bit per sample. like 16, 32.
     pcmfile         the pcm file path.
     wavfile         the wav file path.
 
@@ -127,7 +127,7 @@ else
     [ $# -ne 5 ] && usage
     channel=$1
     samplerate=$2
-    bitdepth=$3
+    bitspersample=$3
     infile=$4
     outfile=$5
 fi
@@ -168,6 +168,33 @@ hex() {
 
 pcmsize=`filesize $infile`
 
+#                        wav header(44 bytes)
+#                        
+#0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                        ChunkID(RIFF)                        | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                      ChunkSize(36 + PCMSIZE)                | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                        Format(WAVE)                         | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                        SubChunk1ID(fmt)                     | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                      SubChunkID1Size(16bytes)               | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|      AudioFormat(0x01)      |         Num Channels          | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                         SampleRate                          | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|    ByteRate(Num Channels x SampleRate x BitsPerSample/8)    | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|      BlockAlign(0x01)      |        BitsPerSample           | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                        SubChunk2ID(data)                    | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#|                      SubChunkID2Size(16bytes)               | 
+#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
 wav_header() {
 echo -n '5249 4646 '\
 $(little_endian $(hex 8 `expr $pcmsize + 36`))\
@@ -176,9 +203,9 @@ $(little_endian $(hex 8 `expr $pcmsize + 36`))\
 '0100'\
 $(little_endian $(hex 4 $channel))\
 $(little_endian $(hex 8 $samplerate))\
-$(little_endian $(hex 8 `expr $channel \* $samplerate \* $bitdepth \/ 8 `))\
-$(little_endian $(hex 4 `expr $channel \* $bitdepth \/ 8 `))\
-$(little_endian $(hex 4 $bitdepth))\
+$(little_endian $(hex 8 `expr $channel \* $samplerate \* $bitspersample \/ 8 `))\
+$(little_endian $(hex 4 `expr $channel \* $bitspersample \/ 8 `))\
+$(little_endian $(hex 4 $bitspersample))\
 '6461 7461'\
 $(little_endian $(hex 8 $pcmsize))
 }

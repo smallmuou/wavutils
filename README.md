@@ -17,7 +17,7 @@ chmod +x /usr/local/bin/pcm2wav
 
 ```bash
 # convert pcm to wav
-pcm2wav [OPTIONS] channel samplerate bitdepth pcmfile wavfile
+pcm2wav [OPTIONS] channel samplerate bitspersample pcmfile wavfile
 
 # convert wav to pcm
 pcm2wav [OPTIONS] -r wavfile pcmfile
@@ -29,10 +29,10 @@ also i provide some sample files for your test. like follow:
 
 ```
 samples/
-├── sample1.pcm     - channel: 2  samplerate: 44100 bitdepth: 16
-├── sample1.wav     - channel: 2  samplerate: 44100 bitdepth: 16
-├── sample2.pcm     - channel: 1  samplerate: 8000 bitdepth: 16
-└── sample2.wav     - channel: 1  samplerate: 8000 bitdepth: 16
+├── sample1.pcm     - channel: 2  samplerate: 44100 bitspersample: 16
+├── sample1.wav     - channel: 2  samplerate: 44100 bitspersample: 16
+├── sample2.pcm     - channel: 1  samplerate: 8000 bitspersample: 16
+└── sample2.wav     - channel: 1  samplerate: 8000 bitspersample: 16
 ```
 
 ## license
