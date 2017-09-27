@@ -22,23 +22,32 @@ sudo ./install.sh
 
 ```bash
 pcm2wav channel samplerate bitspersample pcmfile wavfile
+
+# sample
+pcm2wav samples/sample1.pcm out.wav
 ```
 
 * wav2pcm - convert wav to pcm
 
 ```bash
 wav2pcm wavfile pcmfile
+
+#sample
+pcm2wav samples/sample1.wav out.pcm
 ```
 
 * wavinfo - show information of wav
 
 ```bash
 wavinfo wavfile
+
+#sample
+wavinfo samples/sample1.wav
 ```
 
 ## samples
 
-also i provide some sample files for your test. like follow: 
+also I provide some sample files for your test. like follow: 
 
 ```
 samples/
