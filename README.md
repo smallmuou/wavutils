@@ -43,6 +43,15 @@ wavinfo wavfile
 
 #sample
 wavinfo samples/sample1.wav
+
+++++++++++++++++++++++++++++++++++++++++++++++
++          WAVEFORM INFORMATION              +
+++++++++++++++++++++++++++++++++++++++++++++++
+    Audio Format:   1 (0x0001)
+    Num Channels:   2 (0x0002)
+     Sample Rate:   44100 (0x0000ac44)
+ Bits Per Sample:   16 (0x0010)
+        PCM Size:   622592 (0x00098000)
 ```
 
 ## samples
