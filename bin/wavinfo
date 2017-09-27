@@ -173,7 +173,7 @@ header=`xxd -p -c 44 -l 44 $infile`
 
 cat << EOF
 ++++++++++++++++++++++++++++++++++++++++++++++
-+              WAVE INFORMATION              +
++          WAVEFORM INFORMATION              +
 ++++++++++++++++++++++++++++++++++++++++++++++
 EOF
 
