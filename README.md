@@ -24,7 +24,7 @@ sudo ./install.sh
 pcm2wav channel samplerate bitspersample pcmfile wavfile
 
 # sample
-pcm2wav samples/sample1.pcm out.wav
+pcm2wav 2 44100 16 samples/sample1.pcm out.wav
 ```
 
 * wav2pcm - convert wav to pcm
