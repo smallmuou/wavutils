@@ -1,26 +1,39 @@
-# pcm2wav
+# wavutils
 
-pcm2wav is a tool that can convert pcm to wav, or convert wav to pcm.
+wavutils is a tool set that process wav file. like follow:
+
+```bash
+bin/
+├── pcm2wav - convert pcm to wav
+├── wav2pcm - convert wav to pcm
+└── wavinfo - show info of wav
+```
 
 ## install
 
-copy pcm2wav to /usr/local/bin
-
 ```bash
-git clone https://github.com/smallmuou/pcm2wav
-cd pcm2wav
-cp pcm2wav /usr/local/bin
-chmod +x /usr/local/bin/pcm2wav
+git clone https://github.com/smallmuou/wavutils
+cd wavutils
+sudo ./install.sh
 ```
 
 ## usage
+* pcm2wav - convert pcm to wav
 
 ```bash
-# convert pcm to wav
-pcm2wav [OPTIONS] channel samplerate bitspersample pcmfile wavfile
+pcm2wav channel samplerate bitspersample pcmfile wavfile
+```
 
-# convert wav to pcm
-pcm2wav [OPTIONS] -r wavfile pcmfile
+* wav2pcm - convert wav to pcm
+
+```bash
+wav2pcm wavfile pcmfile
+```
+
+* wavinfo - show information of wav
+
+```bash
+wavinfo wavfile
 ```
 
 ## samples
